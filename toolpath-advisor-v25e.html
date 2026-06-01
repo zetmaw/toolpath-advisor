@@ -5064,27 +5064,29 @@ function switchTab(n,el) {
 })();
 
 function clearProfileAndWizard() {
-  // [v22] U-02: Confirm before clearing profile
   if(!confirm('This will clear your machine profile and restart the setup wizard. Continue?')) return;
   try { localStorage.removeItem('tpa_profile'); } catch(e) {}
   wiz = { step:0, subStep:0, machine:null, spindle:null, mode:'spindle',
           cam:null, fieldOrder:[], profileName:'', controller:'',
           customMachine:{ rpmMin:8000, rpmMax:30000, powerW:150, collets:['1/4 in'], rigidity:3 } };
-  // Re-inject the full wizard shell and re-run renderStep
-  // [v22] Fixed: clear existing content first to prevent duplicate IDs
-  document.getElementById('wizard-overlay').innerHTML = ''; // clear first
+  // Hide the app if it was previously launched so the wizard takes over
+  const appEl = document.getElementById('app');
+  if(appEl) appEl.style.display = 'none';
+  document.getElementById('wizard-overlay').innerHTML = '';
   document.getElementById('wizard-overlay').innerHTML =
     '<div class="wizard-shell">' +
       '<div class="wizard-header">' +
-        '<div class="progress-steps" role="progressbar" aria-valuemin="1" aria-valuemax="3" aria-valuenow="1" aria-label="Setup progress: step 1 of 3">' +
+        '<button class="wizard-close" id="wizard-close-btn" onclick="closeWizard()" aria-label="Close and return to advisor">✕</button>' +
+        '<div class="progress-steps" role="progressbar" aria-valuemin="1" aria-valuemax="4" aria-valuenow="1" aria-label="Setup progress: step 1 of 4">' +
           '<div class="step-dot active" id="sdot0" aria-hidden="true">1</div>' +
           '<div class="step-connector" id="scon0"></div>' +
           '<div class="step-dot" id="sdot1" aria-hidden="true">2</div>' +
           '<div class="step-connector" id="scon1"></div>' +
           '<div class="step-dot" id="sdot2" aria-hidden="true">3</div>' +
-          
+          '<div class="step-connector" id="scon2"></div>' +
+          '<div class="step-dot" id="sdot3" aria-hidden="true">4</div>' +
         '</div>' +
-        '<div class="wizard-step-label" id="step-label" aria-live="polite">Step 1 of 3</div>' +
+        '<div class="wizard-step-label" id="step-label" aria-live="polite">Step 1 of 4</div>' +
         '<h1 class="wizard-title" id="wiz-title" tabindex="-1">Select Your Machine</h1>' +
         '<p class="wizard-sub" id="step-sub">We\'ll tune every recommendation to your machine\'s real-world capabilities.</p>' +
       '</div>' +
