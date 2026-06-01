@@ -5064,12 +5064,38 @@ function switchTab(n,el) {
 })();
 
 function clearProfileAndWizard() {
-  if(!confirm('This will clear your machine profile and restart the setup wizard. Continue?')) return;
+  // [v25f] Inline confirmation — confirm() is blocked in cross-origin iframes (Safari).
+  // Swap the welcome-back footer buttons to an inline "are you sure?" row.
+  const footer = document.querySelector('#wizard-overlay .wizard-footer');
+  if (footer && footer.querySelector('[onclick*="launchApp"]')) {
+    // We're on the welcome-back screen — show inline confirmation
+    footer.innerHTML =
+      '<div style="font-size:13px;color:#5a4e3a;flex:1;min-width:0;padding-right:12px;">' +
+        '<strong style="color:#1e1810;">Clear saved profile?</strong> ' +
+        'This restarts the setup wizard from step 1.' +
+      '</div>' +
+      '<button class="btn btn-ghost" onclick="restoreWelcomeBackFooter()" aria-label="Keep saved profile">Cancel</button>' +
+      '<button class="btn btn-primary" onclick="doClearProfile()" aria-label="Confirm clear profile">Yes, restart</button>';
+    return;
+  }
+  // Fallback: invoke directly if we can't find the footer
+  doClearProfile();
+}
+
+function restoreWelcomeBackFooter() {
+  const footer = document.querySelector('#wizard-overlay .wizard-footer');
+  if (footer) {
+    footer.innerHTML =
+      '<button class="btn btn-ghost" onclick="clearProfileAndWizard()">⚙ Change profile</button>' +
+      '<button class="btn btn-primary" onclick="launchApp()">▶ Continue →</button>';
+  }
+}
+
+function doClearProfile() {
   try { localStorage.removeItem('tpa_profile'); } catch(e) {}
   wiz = { step:0, subStep:0, machine:null, spindle:null, mode:'spindle',
           cam:null, fieldOrder:[], profileName:'', controller:'',
           customMachine:{ rpmMin:8000, rpmMax:30000, powerW:150, collets:['1/4 in'], rigidity:3 } };
-  // Hide the app if it was previously launched so the wizard takes over
   const appEl = document.getElementById('app');
   if(appEl) appEl.style.display = 'none';
   document.getElementById('wizard-overlay').innerHTML = '';
